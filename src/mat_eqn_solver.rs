@@ -2,7 +2,7 @@ use crate::mat::{Mat, RowOperation};
 use crate::upper_triangle::UpperTriangle;
 use std::marker::PhantomData;
 
-// trait represeting a solution to a matrix equation
+// trait representing a solution to a matrix equation
 pub trait MatEqnSolver {
     fn solve(m: Mat, b: Vec<f64>) -> Result<Vec<f64>, ()>;
 }
@@ -19,11 +19,12 @@ where
 {
     fn solve(mut m: Mat, mut b: Vec<f64>) -> Result<Vec<f64>, ()> {
         assert_eq!(m.cols(), b.len());
-        let res = T::process(&mut m, &mut |op| match op {
-            &RowOperation::Swap(r1, r2) => b.swap(r1, r2),
-            &RowOperation::Scale { src, scale, dest } => b[dest] = scale * b[src],
+        let res = T::run(&mut m, &mut |op| match *op {
+            RowOperation::Swap(r1, r2) => b.swap(r1, r2),
+            RowOperation::Cmb { src, scale, dest } => b[dest] -= scale * b[src],
+            RowOperation::Scale { row, scale } => b[row] *= scale,
         });
-        if let Err(_) = res {
+        if res.is_err() {
             return Err(());
         }
         let n = m.rows() - 1;

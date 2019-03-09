@@ -1,9 +1,11 @@
+use std::fmt;
 use std::ops::Mul;
 
 #[derive(Debug, Clone)]
 pub enum RowOperation {
     Swap(usize, usize),
-    Scale { src: usize, scale: f64, dest: usize },
+    Cmb { src: usize, scale: f64, dest: usize },
+    Scale { row: usize, scale: f64 },
 }
 
 #[derive(Debug, Clone)]
@@ -18,7 +20,7 @@ impl Mat {
         assert!(cols > 0);
         Mat {
             cols,
-            data: Vec::with_capacity(rows * cols).into_boxed_slice(),
+            data: vec![0.0; rows * cols].into_boxed_slice(),
         }
     }
 
@@ -31,13 +33,14 @@ impl Mat {
     }
 
     pub fn apply(&mut self, op: &RowOperation) {
-        match op {
-            &RowOperation::Scale { src, scale, dest } => self.scale_row(src, scale, dest),
-            &RowOperation::Swap(r1, r2) => self.swap_row(r1, r2),
+        match *op {
+            RowOperation::Cmb { src, scale, dest } => self.cmb_rows(src, scale, dest),
+            RowOperation::Swap(r1, r2) => self.swap_rows(r1, r2),
+            RowOperation::Scale { row, scale } => self.scale_row(row, scale),
         }
     }
 
-    fn swap_row(&mut self, r1: usize, r2: usize) {
+    fn swap_rows(&mut self, r1: usize, r2: usize) {
         for i in 0..self.cols() {
             let tmp = self.get(r1, i);
             self.set(r1, i, self.get(r2, i));
@@ -45,9 +48,15 @@ impl Mat {
         }
     }
 
-    fn scale_row(&mut self, src: usize, scale: f64, dest: usize) {
+    fn cmb_rows(&mut self, src: usize, scale: f64, dest: usize) {
         for i in 0..self.cols() {
-            self.set(dest, i, scale * self.get(src, i));
+            self.set(dest, i, self.get(dest, i) - scale * self.get(src, i));
+        }
+    }
+
+    fn scale_row(&mut self, row: usize, scale: f64) {
+        for i in 0..self.cols {
+            self.set(row, i, self.get(row, i) * scale);
         }
     }
 
@@ -111,5 +120,17 @@ impl Mul<&Mat> for &Mat {
             }
         }
         res
+    }
+}
+
+impl fmt::Display for Mat {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        for r in self.iter() {
+            for v in r.iter() {
+                write!(f, "{} ", *v)?;
+            }
+            writeln!(f)?;
+        }
+        Ok(())
     }
 }
