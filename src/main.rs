@@ -6,11 +6,12 @@ mod reduce_upper;
 mod upper_triangle;
 
 use crate::invert::{AugmentedMat, Invert};
+use crate::mat::Mat;
 use crate::reduce_upper::BasicReduceUpper;
 use crate::upper_triangle::Gaussian;
 
 fn main() {
-    let mut m = crate::mat::Mat::new(3, 3);
+    let mut m = Mat::new(3, 3);
     m.set(0, 0, 1.0);
     m.set(0, 1, 1.0);
     m.set(0, 2, 1.0);
@@ -24,6 +25,7 @@ fn main() {
     m.set(2, 2, -1.0);
 
     println!("{}", m);
-    let mp = AugmentedMat::<Gaussian, BasicReduceUpper>::invert(m).expect("err");
+    let mp = AugmentedMat::<Gaussian, BasicReduceUpper>::invert(m)
+        .expect("error while inverting matrix");
     println!("{}", mp);
 }

@@ -92,6 +92,25 @@ impl Mat {
     pub fn cols(&self) -> usize {
         self.cols
     }
+
+    fn display(&self, n_chars: usize, f: &mut fmt::Formatter) -> fmt::Result {
+        fn f64_fmt_len(i: f64, len: usize) -> String {
+            let res = format!("{:.64}", i);
+            res[0..len].to_string()
+        }
+
+        let line_len = (((n_chars + 3) * self.cols()) as isize + -1) as usize;
+        writeln!(f, "+{}+", "-".repeat(line_len))?;
+        for r in self.iter() {
+            write!(f, "| ")?;
+            for v in r.iter() {
+                write!(f, "{} | ", f64_fmt_len(*v, n_chars))?;
+            }
+            writeln!(f)?;
+        }
+        writeln!(f, "+{}+", "-".repeat(line_len))?;
+        Ok(())
+    }
 }
 
 impl Mul<&mut Mat> for f64 {
@@ -125,12 +144,7 @@ impl Mul<&Mat> for &Mat {
 
 impl fmt::Display for Mat {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        for r in self.iter() {
-            for v in r.iter() {
-                write!(f, "{} ", *v)?;
-            }
-            writeln!(f)?;
-        }
-        Ok(())
+        const N_CHARS: usize = 10;
+        self.display(N_CHARS, f)
     }
 }
