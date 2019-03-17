@@ -6,7 +6,7 @@ pub trait UpperTriangle {
     fn run<F: FnMut(&RowOperation)>(m: &mut Mat, h: &mut F) -> Result<(), ()>;
 }
 
-// gaussian proceedure to get into upper triangular
+// gaussian procedure to get into upper triangular
 pub struct Gaussian;
 
 impl UpperTriangle for Gaussian {
@@ -14,7 +14,7 @@ impl UpperTriangle for Gaussian {
         assert!(m.rows() >= m.cols());
         let n = m.rows() - 1;
         for i in 0..n {
-            let p = match (i..=n).filter(|p| m.get(*p, i) != 0.0).min() {
+            let p = match (i..=n).filter(|p| m.get(*p, i) != 0.0).next() {
                 Some(p) => p,
                 None => return Err(()),
             };

@@ -1,3 +1,4 @@
+use crate::lu_dec::LuDec;
 use crate::mat::{Mat, RowOperation};
 use crate::upper_triangle::UpperTriangle;
 use std::marker::PhantomData;
@@ -35,5 +36,29 @@ where
                 (b[i] - ((i + 1)..=n).map(|j| m.get(i, j) * res[j]).sum::<f64>()) / m.get(i, i);
         }
         Ok(res)
+    }
+}
+
+pub struct LuDecompSolver<D: LuDec> {
+    d: PhantomData<*const D>,
+}
+
+impl<D: LuDec> MatEqnSolver for LuDecompSolver<D> {
+    fn solve(m: Mat, b: Vec<f64>) -> Result<Vec<f64>, ()> {
+        let (l, u) = D::dec(m)?;
+
+        let n = l.rows() - 1;
+        let mut y = vec![0.0; l.rows()];
+        y[0] = b[0] / l.get(0, 0);
+        for i in 1..=n {
+            y[i] = (b[i] - (0..i).map(|j| l.get(i, j) * y[j]).sum::<f64>()) / l.get(i, i);
+        }
+
+        let mut x = vec![0.0; u.rows()];
+        x[n] = y[n] / u.get(n, n);
+        for i in (0..=n).rev() {
+            x[i] = (y[i] - ((i + 1)..=n).map(|j| u.get(i, j) * x[j]).sum::<f64>()) / u.get(i, i);
+        }
+        Ok(x)
     }
 }

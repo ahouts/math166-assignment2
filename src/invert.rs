@@ -15,11 +15,7 @@ pub struct AugmentedMat<T: UpperTriangle, R: ReduceUpper> {
 impl<T: UpperTriangle, R: ReduceUpper> Invert for AugmentedMat<T, R> {
     fn invert(mut m: Mat) -> Result<Mat, ()> {
         assert!(m.is_square());
-        let mut res = Mat::new(m.rows(), m.cols());
-        let n = m.rows() - 1;
-        for i in 0..=n {
-            res.set(i, i, 1.0);
-        }
+        let mut res = Mat::new_i(m.rows());
         T::run(&mut m, &mut |op| {
             res.apply(op);
         })?;
