@@ -169,7 +169,7 @@ fn main() {
     println!();
 
     // for matrices of size 2, 4, 8, etc...
-    for size in 1..=7 {
+    for size in 1..=10 {
         let size = 2f64.powi(size) as usize;
         let mut m = Mat::new_i(size);
         for i in 0..size {
