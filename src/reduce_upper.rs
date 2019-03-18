@@ -6,6 +6,7 @@ pub trait ReduceUpper {
     fn run<F: FnMut(&RowOperation)>(m: &mut Mat, h: &mut F) -> Result<(), ()>;
 }
 
+// trivial reduce method
 pub struct BasicReduceUpper;
 
 impl ReduceUpper for BasicReduceUpper {

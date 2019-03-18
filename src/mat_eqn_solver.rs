@@ -39,6 +39,7 @@ where
     }
 }
 
+// convert the matrix into LU form, then solve for b
 pub struct LuDecompSolver<D: LuDec> {
     d: PhantomData<*const D>,
 }

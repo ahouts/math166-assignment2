@@ -1,14 +1,16 @@
 use crate::mat::Mat;
-use std::cmp::Ordering;
-use std::mem::swap;
-use rand::random;
 use crate::mat_eqn_solver::MatEqnSolver;
+use rand::random;
+use std::cmp::Ordering;
 use std::marker::PhantomData;
+use std::mem::swap;
 
+// trait representing a method that calculates an eigenvalue
 pub trait EigenSolve {
     fn eigen_solve(mat: &Mat, q: f64, accuracy: f64) -> Result<f64, ()>;
 }
 
+// typical power method solution to calculate eigenvalues
 pub struct PowerMethod;
 
 impl EigenSolve for PowerMethod {
@@ -24,7 +26,6 @@ impl EigenSolve for PowerMethod {
                 return Err(());
             }
             let xpk_index = find_max_mag(&x);
-            let xpk = x[xpk_index];
 
             let y = m * &x;
             let u = y[xpk_index];
@@ -59,6 +60,7 @@ fn find_max_mag<T: AsRef<[f64]>>(v: T) -> usize {
     i
 }
 
+// typical inverse power method for calculating eigenvalues
 pub struct InversePowerMethod<S: MatEqnSolver> {
     s: PhantomData<*const S>,
 }
@@ -78,7 +80,6 @@ impl<S: MatEqnSolver> EigenSolve for InversePowerMethod<S> {
                 return Err(());
             }
             let xpk_index = find_max_mag(&x);
-            let xpk = x[xpk_index];
 
             let y = S::solve(m.clone(), x.clone())?;
             let u = 1. / y[xpk_index] + q;

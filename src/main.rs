@@ -7,22 +7,22 @@ mod norm;
 mod reduce_upper;
 mod upper_triangle;
 
+use crate::eigenvalue::{EigenSolve, InversePowerMethod, PowerMethod};
 use crate::invert::{AugmentedMat, Invert};
 use crate::lu_dec::{Doolittle, LuDec};
 use crate::mat::Mat;
+use crate::mat_eqn_solver::LuDecompSolver;
 use crate::norm::LInf;
 use crate::reduce_upper::BasicReduceUpper;
 use crate::upper_triangle::Gaussian;
-use crate::mat_eqn_solver::LuDecompSolver;
 use rand::random;
-use crate::eigenvalue::{EigenSolve, PowerMethod, InversePowerMethod};
 
+// convert a 2d array into a matrix
 fn to_mat<A: AsRef<[f64]>, R: AsRef<[A]>>(v2: R) -> Mat {
     let rows = v2.as_ref().len();
     let cols = v2.as_ref()[0].as_ref().len();
     let mut res = Mat::new(rows, cols);
 
-    let rows = v2.as_ref();
     for (r, row) in v2.as_ref().iter().enumerate() {
         for (c, val) in row.as_ref().iter().enumerate() {
             res.set(r, c, *val);
@@ -199,11 +199,7 @@ fn main() {
 
     println!("Matrix (a)");
     let ma = {
-        const MAT_DATA: [[f64; 3]; 3] = [
-            [2., 1., 1.],
-            [1., 2., 1.],
-            [1., 1., 2.],
-        ];
+        const MAT_DATA: [[f64; 3]; 3] = [[2., 1., 1.], [1., 2., 1.], [1., 1., 2.]];
         to_mat(MAT_DATA)
     };
     println!("{}", ma);
@@ -211,7 +207,6 @@ fn main() {
         .expect("error computing eigenvalue using the power method");
     println!("largest eigenvalue: {:.10}", e);
     println!();
-
 
     println!("Matrix (b)");
     let mb = {
@@ -232,10 +227,10 @@ fn main() {
     println!("Matrix (c)");
     let mc = {
         const MAT_DATA: [[f64; 4]; 4] = [
-            [5., -2., -1./2., 3./2.],
-            [-2., 5., 3./2., -1./2.],
-            [-1./2., 3./2., 5., -2.],
-            [3./2., -1./2., -2., 5.],
+            [5., -2., -1. / 2., 3. / 2.],
+            [-2., 5., 3. / 2., -1. / 2.],
+            [-1. / 2., 3. / 2., 5., -2.],
+            [3. / 2., -1. / 2., -2., 5.],
         ];
         to_mat(MAT_DATA)
     };
@@ -248,9 +243,9 @@ fn main() {
     println!("Matrix (d)");
     let md = {
         const MAT_DATA: [[f64; 4]; 4] = [
-            [-4., 0., 1./2., 1./2.],
-            [1./2., -2., 0., 1./2.],
-            [1./2., 1./2., 0., 0.],
+            [-4., 0., 1. / 2., 1. / 2.],
+            [1. / 2., -2., 0., 1. / 2.],
+            [1. / 2., 1. / 2., 0., 0.],
             [0., 1., 1., 4.],
         ];
         to_mat(MAT_DATA)
@@ -269,8 +264,9 @@ fn main() {
     let mut results = vec![];
     let mut q = 1.;
     while q < 9. {
-        let e = InversePowerMethod::<LuDecompSolver<Doolittle<Gaussian>>>::eigen_solve(&mc, q, 10e-10)
-            .expect("error computing eigenvalue");
+        let e =
+            InversePowerMethod::<LuDecompSolver<Doolittle<Gaussian>>>::eigen_solve(&mc, q, 10e-10)
+                .expect("error computing eigenvalue");
 
         if let None = results.iter().filter(|v| f64::abs(*v - e) < 0.1).next() {
             results.push(e);

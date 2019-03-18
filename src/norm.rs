@@ -1,9 +1,11 @@
 use crate::mat::Mat;
 
+// trait representing a method to calculate a norm of a matrix
 pub trait Norm {
     fn norm(m: &Mat) -> f64;
 }
 
+// l infinity norm
 pub struct LInf;
 
 impl Norm for LInf {

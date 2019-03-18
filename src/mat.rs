@@ -1,10 +1,9 @@
-use crate::lu_dec::Doolittle;
 use crate::norm::Norm;
-use crate::upper_triangle::Gaussian;
 use std::fmt;
 use std::ops::{Mul, Sub};
 
 #[derive(Debug, Clone)]
+// representation of a row operation
 pub enum RowOperation {
     Swap(usize, usize),
     Cmb { src: usize, scale: f64, dest: usize },
@@ -12,12 +11,14 @@ pub enum RowOperation {
 }
 
 #[derive(Debug, Clone)]
+// matrix, represented by an array on the heap
 pub struct Mat {
     cols: usize,
     data: Box<[f64]>,
 }
 
 impl Mat {
+    // construct a new matrix
     pub fn new(rows: usize, cols: usize) -> Self {
         assert!(rows > 0);
         assert!(cols > 0);
@@ -27,6 +28,7 @@ impl Mat {
         }
     }
 
+    // construct a new identity matrix
     pub fn new_i(size: usize) -> Self {
         let mut res = Mat::new(size, size);
         let n = size - 1;
@@ -36,6 +38,7 @@ impl Mat {
         res
     }
 
+    // construct a new hilbert matrix
     pub fn new_hilbert(size: usize) -> Self {
         let mut res = Mat::new(size, size);
         let n = size - 1;
@@ -47,14 +50,17 @@ impl Mat {
         res
     }
 
+    // get a value from the matrix
     pub fn get(&self, row: usize, col: usize) -> f64 {
         self.data[self.cols * row + col]
     }
 
+    // set a value in the matrix
     pub fn set(&mut self, row: usize, col: usize, val: f64) {
         self.data[self.cols * row + col] = val;
     }
 
+    // apply a row operation to the matrix
     pub fn apply(&mut self, op: &RowOperation) {
         match *op {
             RowOperation::Cmb { src, scale, dest } => self.cmb_rows(src, scale, dest),
@@ -63,6 +69,7 @@ impl Mat {
         }
     }
 
+    // swap rows
     fn swap_rows(&mut self, r1: usize, r2: usize) {
         for i in 0..self.cols() {
             let tmp = self.get(r1, i);
@@ -71,36 +78,44 @@ impl Mat {
         }
     }
 
+    // combine rows, with a scale
     fn cmb_rows(&mut self, src: usize, scale: f64, dest: usize) {
         for i in 0..self.cols() {
             self.set(dest, i, self.get(dest, i) - scale * self.get(src, i));
         }
     }
 
+    // scale a row
     fn scale_row(&mut self, row: usize, scale: f64) {
         for i in 0..self.cols {
             self.set(row, i, self.get(row, i) * scale);
         }
     }
 
+    // is the matrix square?
     pub fn is_square(&self) -> bool {
         self.rows() == self.cols()
     }
 
+    // iterate through the rows
     pub fn iter(&self) -> impl Iterator<Item = &[f64]> {
         self.data.chunks(self.cols)
     }
 
+    // iterate through the columns of the matrix, mutably
     pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut [f64]> {
         self.data.chunks_mut(self.cols)
     }
 
+    // iterate through values of a row of the matrix
     pub fn iter_row(&self, row: usize) -> impl Iterator<Item = &f64> {
         let start_index = row * self.cols;
         let final_index = start_index + self.cols;
         self.data[start_index..final_index].iter()
     }
 
+    // iterate through values of a column of the matrix
+    // WARNING: complexity O(n), where n is the number of cells in the matrix
     pub fn iter_col(&self, col: usize) -> impl Iterator<Item = &f64> {
         self.data.iter().enumerate().filter_map({
             let cols = self.cols;
@@ -108,14 +123,17 @@ impl Mat {
         })
     }
 
+    // number of rows in the matrix
     pub fn rows(&self) -> usize {
         self.data.len() / self.cols
     }
 
+    // number of columns in the matrix
     pub fn cols(&self) -> usize {
         self.cols
     }
 
+    // calculate k for the matrix, given its inverse
     pub fn k<N: Norm>(&self, inv: &Mat) -> f64 {
         N::norm(self) * N::norm(&inv)
     }
@@ -128,6 +146,7 @@ impl Mat {
             .fold(-1. / 0., f64::max)
     }
 
+    // pretty print the matrix
     fn display(&self, n_chars: usize, f: &mut fmt::Formatter) -> fmt::Result {
         fn f64_fmt_len(i: f64, len: usize) -> String {
             let mut res = format!("{:.64}", i);
@@ -151,6 +170,7 @@ impl Mat {
     }
 }
 
+// float * matrix
 impl Mul<&Mat> for f64 {
     type Output = Mat;
 
@@ -163,6 +183,7 @@ impl Mul<&Mat> for f64 {
     }
 }
 
+// matrix * vector
 impl Mul<&Vec<f64>> for &Mat {
     type Output = Vec<f64>;
 
@@ -180,6 +201,7 @@ impl Mul<&Vec<f64>> for &Mat {
     }
 }
 
+// matrix * matrix
 impl Mul<&Mat> for &Mat {
     type Output = Mat;
 
@@ -202,6 +224,7 @@ impl Mul<&Mat> for &Mat {
     }
 }
 
+// matrix - matrix
 impl Sub<&Mat> for &Mat {
     type Output = Mat;
 
@@ -219,6 +242,7 @@ impl Sub<&Mat> for &Mat {
     }
 }
 
+// allow matrices to be printed by println
 impl fmt::Display for Mat {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         const N_CHARS: usize = 10;
