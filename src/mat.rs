@@ -1,5 +1,4 @@
 use crate::lu_dec::Doolittle;
-use crate::mat_eqn_solver::{LuDecompSolver, MatEqnSolver};
 use crate::norm::Norm;
 use crate::upper_triangle::Gaussian;
 use std::fmt;
@@ -121,21 +120,6 @@ impl Mat {
         N::norm(self) * N::norm(&inv)
     }
 
-    pub fn k_approx(&self) -> Result<f64, ()> {
-        assert!(self.is_square());
-        let b: Vec<f64> = (1..=self.cols()).map(|a| a as f64).collect();
-        let x_approx = LuDecompSolver::<Doolittle<Gaussian>>::solve(self.clone(), b.clone())?;
-        let a_x_approx = self * &x_approx;
-        let y_approx: Vec<f64> = b
-            .iter()
-            .zip(a_x_approx.iter())
-            .map(|(v1, v2)| *v1 - *v2)
-            .collect();
-        let l2_x_approx = f64::sqrt(x_approx.iter().map(|v| v.powi(2)).sum());
-        let l2_y_approx = f64::sqrt(y_approx.iter().map(|v| v.powi(2)).sum());
-        Ok((l2_y_approx / l2_x_approx) * 10e16)
-    }
-
     // maximum magnitude term in matrix
     pub fn max(&self) -> f64 {
         self.data
@@ -167,13 +151,15 @@ impl Mat {
     }
 }
 
-impl Mul<&mut Mat> for f64 {
-    type Output = ();
+impl Mul<&Mat> for f64 {
+    type Output = Mat;
 
-    fn mul(self, rhs: &mut Mat) -> <Self as Mul<&mut Mat>>::Output {
-        for coef in rhs.data.iter_mut() {
+    fn mul(self, rhs: &Mat) -> <Self as Mul<&Mat>>::Output {
+        let mut res = rhs.clone();
+        for coef in res.data.iter_mut() {
             *coef *= self;
         }
+        res
     }
 }
 
@@ -220,6 +206,9 @@ impl Sub<&Mat> for &Mat {
     type Output = Mat;
 
     fn sub(self, rhs: &Mat) -> Self::Output {
+        assert_eq!(self.rows(), rhs.rows());
+        assert_eq!(self.cols(), rhs.cols());
+
         let mut res = self.clone();
         for r in 0..res.rows() {
             for c in 0..res.cols() {

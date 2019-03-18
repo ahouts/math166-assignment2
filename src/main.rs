@@ -1,3 +1,4 @@
+mod eigenvalue;
 mod invert;
 mod lu_dec;
 mod mat;
@@ -12,7 +13,24 @@ use crate::mat::Mat;
 use crate::norm::LInf;
 use crate::reduce_upper::BasicReduceUpper;
 use crate::upper_triangle::Gaussian;
+use crate::mat_eqn_solver::LuDecompSolver;
 use rand::random;
+use crate::eigenvalue::{EigenSolve, PowerMethod, InversePowerMethod};
+
+fn to_mat<A: AsRef<[f64]>, R: AsRef<[A]>>(v2: R) -> Mat {
+    let rows = v2.as_ref().len();
+    let cols = v2.as_ref()[0].as_ref().len();
+    let mut res = Mat::new(rows, cols);
+
+    let rows = v2.as_ref();
+    for (r, row) in v2.as_ref().iter().enumerate() {
+        for (c, val) in row.as_ref().iter().enumerate() {
+            res.set(r, c, *val);
+        }
+    }
+
+    res
+}
 
 fn main() {
     let mut m = Mat::new(3, 3);
@@ -114,13 +132,7 @@ fn main() {
             [1., 3., 1., 0.],
             [6., 2., 9., 1.],
         ];
-        let mut m = Mat::new(4, 4);
-        for r in 0..4 {
-            for c in 0..4 {
-                m.set(r, c, MAT_DATA[r][c]);
-            }
-        }
-        m
+        to_mat(MAT_DATA)
     };
 
     println!("matrix:");
@@ -139,13 +151,7 @@ fn main() {
             [1., 5., 3., 1., 0.],
             [3., 2., 1., 2., 1.],
         ];
-        let mut m = Mat::new(5, 5);
-        for r in 0..5 {
-            for c in 0..5 {
-                m.set(r, c, MAT_DATA[r][c]);
-            }
-        }
-        m
+        to_mat(MAT_DATA)
     };
 
     println!("matrix:");
@@ -190,4 +196,87 @@ fn main() {
     println!("# Problem #6                                #");
     println!("#############################################");
     println!();
+
+    println!("Matrix (a)");
+    let ma = {
+        const MAT_DATA: [[f64; 3]; 3] = [
+            [2., 1., 1.],
+            [1., 2., 1.],
+            [1., 1., 2.],
+        ];
+        to_mat(MAT_DATA)
+    };
+    println!("{}", ma);
+    let e = PowerMethod::eigen_solve(&ma, 0., 10e-10)
+        .expect("error computing eigenvalue using the power method");
+    println!("largest eigenvalue: {:.10}", e);
+    println!();
+
+
+    println!("Matrix (b)");
+    let mb = {
+        const MAT_DATA: [[f64; 4]; 4] = [
+            [1., 1., 0., 0.],
+            [1., 2., 0., 1.],
+            [0., 0., 3., 3.],
+            [0., 1., 3., 2.],
+        ];
+        to_mat(MAT_DATA)
+    };
+    println!("{}", mb);
+    let e = PowerMethod::eigen_solve(&mb, 0., 10e-10)
+        .expect("error computing eigenvalue using the power method");
+    println!("largest eigenvalue: {:.10}", e);
+    println!();
+
+    println!("Matrix (c)");
+    let mc = {
+        const MAT_DATA: [[f64; 4]; 4] = [
+            [5., -2., -1./2., 3./2.],
+            [-2., 5., 3./2., -1./2.],
+            [-1./2., 3./2., 5., -2.],
+            [3./2., -1./2., -2., 5.],
+        ];
+        to_mat(MAT_DATA)
+    };
+    println!("{}", mc);
+    let e = PowerMethod::eigen_solve(&mc, 0., 10e-10)
+        .expect("error computing eigenvalue using the power method");
+    println!("largest eigenvalue: {:.10}", e);
+    println!();
+
+    println!("Matrix (d)");
+    let md = {
+        const MAT_DATA: [[f64; 4]; 4] = [
+            [-4., 0., 1./2., 1./2.],
+            [1./2., -2., 0., 1./2.],
+            [1./2., 1./2., 0., 0.],
+            [0., 1., 1., 4.],
+        ];
+        to_mat(MAT_DATA)
+    };
+    println!("{}", md);
+    let e = PowerMethod::eigen_solve(&md, 0., 10e-10)
+        .expect("error computing eigenvalue using the power method");
+    println!("largest eigenvalue: {:.10}", e);
+    println!();
+
+    println!("because of Gershgorin's disk theorem, we know all 4 of the eigenvalues of m");
+    println!("lie in the circle in the complex plan: center (5, 0), radius 4");
+    println!();
+
+    println!("checking every .13 in (1, 9) for eigenvalues");
+    let mut results = vec![];
+    let mut q = 1.;
+    while q < 9. {
+        let e = InversePowerMethod::<LuDecompSolver<Doolittle<Gaussian>>>::eigen_solve(&mc, q, 10e-10)
+            .expect("error computing eigenvalue");
+
+        if let None = results.iter().filter(|v| f64::abs(*v - e) < 0.1).next() {
+            results.push(e);
+        }
+        q += 0.13;
+    }
+
+    println!("found eigenvalues: {:?}", results);
 }
