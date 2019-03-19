@@ -257,7 +257,7 @@ fn main() {
     println!();
 
     println!("because of Gershgorin's disk theorem, we know all 4 of the eigenvalues of m");
-    println!("lie in the circle in the complex plan: center (5, 0), radius 4");
+    println!("lie in the circle in the complex plane: center (5, 0), radius 4");
     println!();
 
     println!("checking every .13 in (1, 9) for eigenvalues");
