@@ -203,7 +203,7 @@ fn main() {
         to_mat(MAT_DATA)
     };
     println!("{}", ma);
-    let e = PowerMethod::eigen_solve(&ma, 0., 10e-10)
+    let e = PowerMethod::eigen_solve(&ma, 0., 1e-10)
         .expect("error computing eigenvalue using the power method");
     println!("largest eigenvalue: {:.10}", e);
     println!();
@@ -219,7 +219,7 @@ fn main() {
         to_mat(MAT_DATA)
     };
     println!("{}", mb);
-    let e = PowerMethod::eigen_solve(&mb, 0., 10e-10)
+    let e = PowerMethod::eigen_solve(&mb, 0., 1e-10)
         .expect("error computing eigenvalue using the power method");
     println!("largest eigenvalue: {:.10}", e);
     println!();
@@ -235,7 +235,7 @@ fn main() {
         to_mat(MAT_DATA)
     };
     println!("{}", mc);
-    let e = PowerMethod::eigen_solve(&mc, 0., 10e-10)
+    let e = PowerMethod::eigen_solve(&mc, 0., 1e-10)
         .expect("error computing eigenvalue using the power method");
     println!("largest eigenvalue: {:.10}", e);
     println!();
@@ -251,7 +251,7 @@ fn main() {
         to_mat(MAT_DATA)
     };
     println!("{}", md);
-    let e = PowerMethod::eigen_solve(&md, 0., 10e-10)
+    let e = PowerMethod::eigen_solve(&md, 0., 1e-10)
         .expect("error computing eigenvalue using the power method");
     println!("largest eigenvalue: {:.10}", e);
     println!();
@@ -265,7 +265,7 @@ fn main() {
     let mut q = 1.;
     while q < 9. {
         let e =
-            InversePowerMethod::<LuDecompSolver<Doolittle<Gaussian>>>::eigen_solve(&mc, q, 10e-10)
+            InversePowerMethod::<LuDecompSolver<Doolittle<Gaussian>>>::eigen_solve(&mc, q, 1e-10)
                 .expect("error computing eigenvalue");
 
         if let None = results.iter().filter(|v| f64::abs(*v - e) < 0.1).next() {
@@ -274,5 +274,9 @@ fn main() {
         q += 0.13;
     }
 
-    println!("found eigenvalues: {:?}", results);
+    print!("found eigenvalues: ");
+    for e in results {
+        print!("{:.9}, ", e);
+    }
+    println!();
 }
